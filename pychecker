@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "$PWD" != "${PWD#/home/rciorba/repos/}" ]
+then
+  path="${PWD#/home/rciorba/repos/}"
+  ve="${path%%/*}"
+  source /home/rciorba/work/$ve/bin/activate
+  pylint "$1"  -f parseable -d c0111,c0103 -r n 2>/dev/null
+fi
+pyflakes "$1"
+#pep8 "$1" --max-line-length=120
+true
