@@ -1,4 +1,4 @@
 misc
 ====
 
-Miscellaneous config files.
+My misc environment files.
