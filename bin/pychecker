@@ -9,5 +9,5 @@ then
   pylint "$1"  -f parseable -d c0111,c0103,i0011,i0012,i0013,w0511$PYLINT_IGNORE -r n 2>/dev/null
 fi
 pyflakes "$1"
-#pep8 "$1" --max-line-length=120
+pep8 "$1" --max-line-length=110
 true
