@@ -191,6 +191,12 @@
 ;;   (require 'ipython)
 ;;   (setq py-python-command-args '("-colors" "Linux")))
 
+(setq load-path (cons  "/home/rciorba/erl/r15b02/lib/tools-2.6.8/emacs"
+                       load-path))
+(setq erlang-root-dir "/home/rciorba/erl/r15b02")
+(setq exec-path (cons "/home/rciorba/erl/r15b02/bin" exec-path))
+(require 'erlang-start)
+
 ;; (defun flymake-erlang-init ()
 ;;   (let* ((temp-file (flymake-init-create-temp-buffer-copy
 ;;                      'flymake-create-temp-inplace))
