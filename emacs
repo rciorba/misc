@@ -16,6 +16,7 @@
 ;; (add-to-list 'auto-mode-alist '("\\.html$" . django-html-mumamo-mode))
 
 (global-set-key [(control f3)] 'highlight-symbol-at-point)
+;; (global-set-key (kbd "M-f3") 'highlight-symbol-next)
 (global-set-key (kbd "M-.") 'highlight-symbol-at-point)
 (global-set-key (kbd "M-,") 'highlight-symbol-next)
 (global-set-key (kbd "C-h") 'delete-backward-char)
@@ -179,7 +180,6 @@
   (add-to-list 'flymake-allowed-file-name-masks
                '("\\.py\\'" flymake-pyflakes-init)))
 (add-hook 'find-file-hook 'flymake-find-file-hook)
-
 
 ;; enable ipython
 ;; (setq python-python-command "ipython")
