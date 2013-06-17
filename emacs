@@ -9,11 +9,6 @@
 (setq emacs-lib-folder "~/.emacs.d")
 (add-to-list 'load-path emacs-lib-folder)
 
-;; (autoload 'django-html-mumamo-mode "~/.emacs.d/nxhtml/autostart.el")
-;; (setq auto-mode-alist
-;;       (append '(("\\.html?$" . django-html-mumamo-mode)) auto-mode-alist))
-;; (setq mumamo-background-colors nil)
-;; (add-to-list 'auto-mode-alist '("\\.html$" . django-html-mumamo-mode))
 
 (global-set-key [(control f3)] 'highlight-symbol-at-point)
 ;; (global-set-key (kbd "M-f3") 'highlight-symbol-next)
