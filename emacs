@@ -1,32 +1,37 @@
-; color theme
-(require 'color-theme)
-(require 'uniquify)
-(setq
- uniquify-buffer-name-style 'forward
- uniquify-separator "/")
-
 ; dinamically add to load-path all folders from emacs-lib-folder
 (setq emacs-lib-folder "~/.emacs.d")
 (add-to-list 'load-path emacs-lib-folder)
 
 
-(global-set-key [(control f3)] 'highlight-symbol-at-point)
-;; (global-set-key (kbd "M-f3") 'highlight-symbol-next)
-(global-set-key (kbd "M-.") 'highlight-symbol-at-point)
-(global-set-key (kbd "M-,") 'highlight-symbol-next)
+;; general keybindings
 (global-set-key (kbd "C-h") 'delete-backward-char)
 (global-set-key (kbd "M-h") 'backward-kill-word)
 (global-set-key (kbd "M-?") 'mark-paragraph)
 (global-set-key (kbd "C-z") 'undo-only)
 (global-unset-key (kbd "C-/"))
 
+
+(require 'color-theme)
+(require 'uniquify)
+(setq
+ uniquify-buffer-name-style 'forward
+ uniquify-separator "/")
+
+
 ;; (require 'light-symbol)
 (require 'highlight-symbol)
+(global-set-key [(control f3)] 'highlight-symbol-at-point)
+;; (global-set-key (kbd "M-f3") 'highlight-symbol-next)
+(global-set-key (kbd "M-.") 'highlight-symbol-at-point)
+(global-set-key (kbd "M-,") 'highlight-symbol-next)
 
-(add-to-list 'load-path "~/.emacs.d/flymake-python/")
+
 (require 'flymake)
-(load-library "flymake-cursor")
 (delete '("\\.html?\\'" flymake-xml-init) flymake-allowed-file-name-masks)
+(load-library "flymake-cursor")
+(custom-set-faces
+ '(flymake-errline ((((class color)) (:underline "OrangeRed"))))
+ '(flymake-warnline ((((class color)) (:underline "yellow")))))
 
 (add-to-list 'load-path "~/.emacs.d/yasnippet")
 (require 'yasnippet)
@@ -62,6 +67,7 @@
 (setq backup-directory-alist
       (quote (("." . "~/.emacs-backups"))))
 
+
 (defun revert-all-buffers ()
   "Refreshes all open buffers from their respective files"
   (interactive)
@@ -77,40 +83,6 @@
   (message "Refreshed open files"))
 (global-set-key [(control shift f5)] 'revert-all-buffers)
 
-; load required libraries
-; (require 'pymacs)
-;; (require 'column-marker)
-
-; ropemacs
-; (pymacs-load "ropemacs" "rope-")
-; (setq ropemacs-enable-autoimport 't)
-; (setenv "PYTHONPATH" "$PYTHONPATH:/usr/share/pyshared/rope:/usr/share/pyshared/ropemacs:/usr/share/pyshared/ropemode" t)
-; (define-key ropemacs-local-keymap [(meta /)] 'dabbrev-expand)
-; (define-key ropemacs-local-keymap [(control /)] 'hippie-expand)
-; (define-key ropemacs-local-keymap [(control c) (control /)] 'rope-code-assist)
-
-;; python mode combined with outline minor mode:
-(add-hook 'python-mode-hook
-          (lambda ()
-            (interactive)
-            ;; (column-marker-2 79)
-;            (setq show-trailing-whitespace t)
-            (which-function-mode t)
-            (outline-minor-mode 1)
-            (yas/minor-mode t)
-            ;; (linum-mode t)
-            ;; (auto-fill-mode t)
-            ;; (require 'ipython)
-            ;; (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
-            ;; (interactive)
-            ;; (column-marker-1 80)
-            (setq coding-system-for-write 'utf-8)
-            (local-set-key "\C-c\C-a" 'show-all)
-            (local-set-key "\C-c\C-q" 'hide-sublevels)
-            (local-set-key "\C-c\C-t" 'hide-body)
-            (local-set-key "\C-c\C-s" 'outline-toggle-children)))
-
-(add-hook 'python-mode-hook '(lambda () (define-key python-mode-map "\C-m" 'newline-and-indent)))
 
 ; move selected text up/down
 (defun move-text-internal (arg)
@@ -133,21 +105,53 @@
        (when (or (< arg 0) (not (eobp)))
         (transpose-lines arg))
        (forward-line -1)))))
-
 (defun move-text-down (arg)
    "Move region (transient-mark-mode active) or current line
   arg lines down."
    (interactive "*p")
    (move-text-internal arg))
-
 (defun move-text-up (arg)
    "Move region (transient-mark-mode active) or current line
   arg lines up."
    (interactive "*p")
    (move-text-internal (- arg)))
-
 (global-set-key [\M-\S-up] 'move-text-up)
 (global-set-key [\M-\S-down] 'move-text-down)
+
+
+; load required libraries
+; (require 'pymacs)
+;; (require 'column-marker)
+
+; ropemacs
+; (pymacs-load "ropemacs" "rope-")
+; (setq ropemacs-enable-autoimport 't)
+; (setenv "PYTHONPATH" "$PYTHONPATH:/usr/share/pyshared/rope:/usr/share/pyshared/ropemacs:/usr/share/pyshared/ropemode" t)
+; (define-key ropemacs-local-keymap [(meta /)] 'dabbrev-expand)
+; (define-key ropemacs-local-keymap [(control /)] 'hippie-expand)
+; (define-key ropemacs-local-keymap [(control c) (control /)] 'rope-code-assist)
+
+
+;; python mode combined with outline minor mode:
+(add-hook 'python-mode-hook
+          (lambda ()
+            (interactive)
+            ;; (column-marker-2 79)
+            (which-function-mode t)
+            (outline-minor-mode 1)
+            (yas/minor-mode t)
+            ;; (linum-mode t)
+            ;; (auto-fill-mode t)
+            ;; (require 'ipython)
+            ;; (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
+            ;; (interactive)
+            ;; (column-marker-1 80)
+            (setq coding-system-for-write 'utf-8)
+            (local-set-key "\C-c\C-a" 'show-all)
+            (local-set-key "\C-c\C-q" 'hide-sublevels)
+            (local-set-key "\C-c\C-t" 'hide-body)
+            (local-set-key "\C-c\C-s" 'outline-toggle-children)
+            (define-key python-mode-map "\C-m" 'newline-and-indent)))
 
 
 ;; (when (load "flymake" t)
