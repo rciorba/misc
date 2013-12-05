@@ -11,6 +11,7 @@
 var root_el = document.getElementById("pull-head");
 var branch_name_el = root_el.getElementsByClassName(
     "current-branch")[1].getElementsByTagName("span")[0];
-var branch_name = branch_name_el.textContent.trim();
-branch_name_el.innerHTML="<a href=\"https://projects.pbs.org/jira/browse/"+branch_name
+var branch_name = branch_name_el.textContent;
+var ticket_name = branch_name.trim().match(/PBSLM-\d*/)[0]
+branch_name_el.innerHTML="<a href=\"https://projects.pbs.org/jira/browse/"+ticket_name
     +"\">"+branch_name+"</a>";
