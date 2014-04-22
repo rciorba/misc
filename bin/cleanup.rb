@@ -47,7 +47,7 @@ for branch in branches
       skip = true
     end
   end
-  if not branch.start_with?("origin/PBSLM-")
+  if not (branch.start_with?("origin/PBSLM-") or branch.start_with?("origin/ARCT-"))
     puts "does not match name: #{branch}"
     skip = true
   end
