@@ -24,15 +24,21 @@ optparse = OptionParser.new do|opts|
   opts.on('--skip b1,b2', Array, 'Comma separated list of branches to skip.' ) do |skip|
     options[:skip] += skip
   end
+  options[:prefix] = nil
+  opts.on('--prefix PREFIX', 'Only delete branches with names starting with PREFIX' ) do |prefix|
+    options[:prefix] = prefix
+  end
 end
 optparse.parse!
 
+prefix = options[:prefix]
 
 if options[:local]
   branches = `git branch`.split("\n")
 else
   branches = `git branch --remotes`.split("\n")
 end
+
 now = DateTime.now
 
 
@@ -47,8 +53,8 @@ for branch in branches
       skip = true
     end
   end
-  if not (branch.start_with?("origin/PBSLM-") or branch.start_with?("origin/ARCT-"))
-    puts "does not match name: #{branch}"
+  if prefix and not (branch.start_with?(prefix))
+    # puts "#{branch} does not match prefix #{prefix}"
     skip = true
   end
   if skip
