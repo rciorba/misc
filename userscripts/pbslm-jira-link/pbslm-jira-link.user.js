@@ -12,6 +12,7 @@ var root_el = document.getElementById("js-discussion-header");
 var branch_name_el = root_el.getElementsByClassName(
     "current-branch")[1].getElementsByTagName("span")[0];
 var branch_name = branch_name_el.textContent;
-var ticket_name = branch_name.trim().match(/PBSLM-\d*/)[0]
+var ticket_name = branch_name.trim().match(/(PBSLM|ARCT)-\d*/)[0];
+console.log(ticket_name);
 branch_name_el.innerHTML="<a href=\"https://projects.pbs.org/jira/browse/"+ticket_name
     +"\">"+branch_name+"</a>";
