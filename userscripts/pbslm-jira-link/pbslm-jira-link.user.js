@@ -8,7 +8,7 @@
 // @include        https://github.com/pbs/Panda/pull/*
 // @run-at         document-end
 // ==/UserScript==
-var root_el = document.getElementById("js-discussion-header");
+var root_el = document.getElementById("partial-discussion-header");
 var branch_name_el = root_el.getElementsByClassName(
     "current-branch")[1].getElementsByTagName("span")[0];
 var branch_name = branch_name_el.textContent;
