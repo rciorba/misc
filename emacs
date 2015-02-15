@@ -1,6 +1,13 @@
-; dinamically add to load-path all folders from emacs-lib-folder
-(setq emacs-lib-folder "~/.emacs.d")
+;; -*- mode: elisp
+(setq emacs-lib-folder "~/.emacs.d/lisp")
 (add-to-list 'load-path emacs-lib-folder)
+(delete 'Git vc-handled-backends)
+
+;; package repositories
+(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+                         ("marmalade" . "http://marmalade-repo.org/packages/")
+                         ("melpa" . "http://melpa.milkbox.net/packages/")
+       ))
 
 
 ;; general keybindings
@@ -10,56 +17,72 @@
 (global-set-key (kbd "C-z") 'undo-only)
 (global-unset-key (kbd "C-/"))
 
-
-(require 'color-theme)
 (require 'uniquify)
 (setq
- uniquify-buffer-name-style 'forward
- uniquify-separator "/")
+ uniquify-buffer-name-style 'post-forward
+ uniquify-separator ":")
+;; ;; (linum ((,class (:foreground, black :background, white))))
 
-
-;; (require 'light-symbol)
 (require 'highlight-symbol)
 (global-set-key [(control f3)] 'highlight-symbol-at-point)
 ;; (global-set-key (kbd "M-f3") 'highlight-symbol-next)
 (global-set-key (kbd "M-.") 'highlight-symbol-at-point)
 (global-set-key (kbd "M-,") 'highlight-symbol-next)
 
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.jsp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
+
 
 (require 'flymake)
+;; (flymake-mode 0)
 (delete '("\\.html?\\'" flymake-xml-init) flymake-allowed-file-name-masks)
 (load-library "flymake-cursor")
+
 (custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(flymake-errline ((((class color)) (:underline "OrangeRed"))))
  '(flymake-warnline ((((class color)) (:underline "yellow")))))
 
-(add-to-list 'load-path "~/.emacs.d/yasnippet")
+
+(add-to-list 'load-path "~/.emacs.d/yasnippet/")
 (require 'yasnippet)
-(yas-reload-all)
+;; (yas-reload-all)
 
 ; enable minor modes
+(setq ido-enable-flex-matching t)
+(setq ido-everywhere t)
 (ido-mode 1)
-(tabbar-mode 1)
-(iswitchb-mode 1)
+(tool-bar-mode 0)
+;; (tabbar-mode 1)
+;; (iswitchb-mode 0)
 (desktop-save-mode 1)
 (transient-mark-mode 1)
 (show-paren-mode 1)
 (column-number-mode 1)
-(visual-line-mode t)
-(global-linum-mode 1)
+(visual-line-mode 0)
+(global-linum-mode 0)
 
-; misc settings
-(setq scroll-step 1)
-(setq default-tab-width 2)
-(tool-bar-mode (quote toggle))
-(delete-selection-mode (quote toggle))
-(setq inhibit-splash-screen t)
+;; ; misc settings
+;; (setq scroll-step 1)
+;; (setq default-tab-width 2)
+;; (tool-bar-mode (quote toggle))
+(delete-selection-mode 1)
+;; (setq inhibit-splash-screen t)
 (cua-selection-mode nil)
 (setq-default indent-tabs-mode nil)
-(show-ws-toggle-show-trailing-whitespace)
+;; (show-ws-toggle-show-trailing-whitespace)
 
 
-; separate customize init file
+;; ; separate customize init file
 (setq custom-file "~/.emacs-custom")
 (load custom-file)
 
@@ -119,19 +142,6 @@
 (global-set-key [\M-\S-down] 'move-text-down)
 
 
-; load required libraries
-; (require 'pymacs)
-;; (require 'column-marker)
-
-; ropemacs
-; (pymacs-load "ropemacs" "rope-")
-; (setq ropemacs-enable-autoimport 't)
-; (setenv "PYTHONPATH" "$PYTHONPATH:/usr/share/pyshared/rope:/usr/share/pyshared/ropemacs:/usr/share/pyshared/ropemode" t)
-; (define-key ropemacs-local-keymap [(meta /)] 'dabbrev-expand)
-; (define-key ropemacs-local-keymap [(control /)] 'hippie-expand)
-; (define-key ropemacs-local-keymap [(control c) (control /)] 'rope-code-assist)
-
-
 ;; python mode combined with outline minor mode:
 (add-hook 'python-mode-hook
           (lambda ()
@@ -145,26 +155,13 @@
             ;; (require 'ipython)
             ;; (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
             ;; (interactive)
-            ;; (column-marker-1 80)
+            (column-marker-1 99)
             (setq coding-system-for-write 'utf-8)
             (local-set-key "\C-c\C-a" 'show-all)
             (local-set-key "\C-c\C-q" 'hide-sublevels)
             (local-set-key "\C-c\C-t" 'hide-body)
             (local-set-key "\C-c\C-s" 'outline-toggle-children)
             (define-key python-mode-map "\C-m" 'newline-and-indent)))
-
-
-;; (when (load "flymake" t)
-;;   (defun flymake-pylint-init ()
-;;     (let* ((temp-file (flymake-init-create-temp-buffer-copy
-;;                        'flymake-create-temp-inplace))
-;;            (local-file (file-relative-name
-;;                         temp-file
-;;                         (file-name-directory buffer-file-name))))
-;;       (list "~/.emacs.d/flymake-python/pyflymake.py" (list local-file))))
-;;   (add-to-list 'flymake-allowed-file-name-masks
-;;                '("\\.py\\'" flymake-pylint-init)))
-;; (add-hook 'find-file-hook 'flymake-find-file-hook)
 
 
 ;; flymake with pyflakes:
@@ -175,54 +172,40 @@
            (local-file (file-relative-name
                         temp-file
                         (file-name-directory buffer-file-name))))
-      (list "pychecker" (list local-file))))
+      (list "~/repos/misc/bin/pychecker" (list local-file))))
   (add-to-list 'flymake-allowed-file-name-masks
                '("\\.py\\'" flymake-pyflakes-init)))
-(add-hook 'find-file-hook 'flymake-find-file-hook)
-
-;; enable ipython
-;; (setq python-python-command "ipython")
-;; (setq python-python-command-args '("-cl" "-colors" "Linux"))
-;; (setq ipython-completion-command-string "print(';'.join(__IP.Completer.all_completions('%s')))\n")
+(global-set-key [(control f10)] 'flymake-mode)
 
 
-;; (when (locate-library "ipython")
-;;   (require 'ipython)
-;;   (setq py-python-command-args '("-colors" "Linux")))
-
-(setq load-path (cons  "/home/rciorba/erl/r15b02/lib/tools-2.6.8/emacs"
-                       load-path))
-(setq erlang-root-dir "/home/rciorba/erl/r15b02")
-(setq exec-path (cons "/home/rciorba/erl/r15b02/bin" exec-path))
-(require 'erlang-start)
-
-;; (defun flymake-erlang-init ()
-;;   (let* ((temp-file (flymake-init-create-temp-buffer-copy
-;;                      'flymake-create-temp-inplace))
-;;          (local-file (file-relative-name temp-file
-;;                                          (file-name-directory buffer-file-name))))
-;;     (list "eflymake.erl"
-;;           (list local-file))))
-;; (add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
-;; (setq flymake-log-level 3)
-;; (add-hook 'erlang-mode-hook
-;;           '(lambda ()
-;;              (flymake-mode t)
-;;              (define-key erlang-mode-map "\C-m" 'newline-and-indent)))
+(defun flymake-erlang-init ()
+  (let* ((temp-file (flymake-init-create-temp-buffer-copy
+                     'flymake-create-temp-inplace))
+         (local-file (file-relative-name temp-file
+                                         (file-name-directory buffer-file-name))))
+    (list "eflymake.sh"
+          (list local-file))))
+(add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
+(setq flymake-log-level 3)
+(add-hook 'erlang-mode-hook
+          '(lambda ()
+             (flymake-mode t)
+             (define-key erlang-mode-map "\C-m" 'newline-and-indent)))
 
 
 ;; (require 'go-mode-load)
-;; (defun flymake-goang-init ()
-;;   (let* ((temp-file (flymake-init-create-temp-buffer-copy
-;;                      'flymake-create-temp-inplace))
-;;          (local-file (file-relative-name temp-file
-;;                                          (file-name-directory buffer-file-name))))
-;;     (list "6g"
-;;           (list local-file))))
-;; (add-to-list 'flymake-allowed-file-name-masks '("\\.go\\'" flymake-goang-init))
-;; (add-hook 'go-mode-hook
-;;           '(lambda ()
-;;              (flymake-mode t)
-;;              (define-key go-mode-map "\C-m" 'newline-and-indent)))
+(defun flymake-golang-init ()
+  (let* ((temp-file (flymake-init-create-temp-buffer-copy
+                     'flymake-create-temp-inplace))
+         (local-file (file-relative-name temp-file
+                                         (file-name-directory buffer-file-name))))
+    (list "go"
+          (list "build" local-file))))
+(add-to-list 'flymake-allowed-file-name-masks '("\\.go\\'" flymake-golang-init))
+(add-hook 'go-mode-hook
+          '(lambda ()
+             (flymake-mode t)
+             (define-key go-mode-map "\C-m" 'newline-and-indent)))
 
 (server-start)
+;; (put 'upcase-region 'disabled nil)
