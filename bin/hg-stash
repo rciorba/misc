@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ ! -d ".hg" ]; then
+    echo "this doesn't look like a mercurial repo"
+    exit 1
+fi
+
+mkdir -p .hg/stash
+patch_series=($(ls .hg/stash/*.diff 2>/dev/null))
+series_length=${#patch_series[@]}
+
+hg diff --git > .hg/stash/$series_length.diff
+hg revert --all
+
+echo stashed $series_length
