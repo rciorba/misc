@@ -1,4 +1,3 @@
-;; -*- mode: elisp
 (setq emacs-lib-folder "~/.emacs.d/lisp")
 (add-to-list 'load-path emacs-lib-folder)
 (delete 'Git vc-handled-backends)
@@ -155,12 +154,13 @@
             ;; (require 'ipython)
             ;; (setq py-python-command-args '("-pylab" "-colors" "LightBG"))
             ;; (interactive)
-            (column-marker-1 99)
+            ;; (column-marker-1 99)
             (setq coding-system-for-write 'utf-8)
-            (local-set-key "\C-c\C-a" 'show-all)
-            (local-set-key "\C-c\C-q" 'hide-sublevels)
-            (local-set-key "\C-c\C-t" 'hide-body)
-            (local-set-key "\C-c\C-s" 'outline-toggle-children)
+            (local-set-key (kbd "C-c C-a") 'outline-show-all)
+            (local-set-key (kbd "C-c C-q") 'outline-hide-sublevels)
+            (local-set-key (kbd "C-c C-t") 'outline-hide-body)
+            (local-set-key (kbd "C-c C-s") 'outline-hide-subtree)
+            (local-set-key (kbd "C-c C-v") 'outline-show-subtree)
             (define-key python-mode-map "\C-m" 'newline-and-indent)))
 
 
