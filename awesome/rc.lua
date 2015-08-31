@@ -1,3 +1,91 @@
+-- Function for updating fraxbat
+function hook_fraxbat (tbw, bat)
+   -- Battery Present?
+   local fh= io.open("/sys/class/power_supply/"..bat.."/present", "r")
+   if fh == nil then
+      tbw.text="No Bat"
+      return(nil)
+   end
+   local stat= fh:read()
+   fh:close()
+   if tonumber(stat) < 1 then
+      tbw.text="Bat Not Present"
+      return(nil)
+   end
+
+   -- Status (Charging, Full or Discharging)
+   fh= io.open("/sys/class/power_supply/"..bat.."/status", "r")
+   if fh == nil then
+      tbw.text="N/S"
+      return(nil)
+   end
+   stat= fh:read()
+   fh:close()
+   if stat == 'Full' then
+      tbw.text="■"
+      return(nil)
+   end
+   stat= string.upper(string.sub(stat, 1, 1))
+   if stat == 'D' then tag= 'span' else tag= 'b' end
+
+   -- Remaining + Estimated (Dis)Charging Time
+   local charge=''
+   fh= io.open("/sys/class/power_supply/"..bat.."/charge_full", "r")
+   if fh ~= nil then
+      local full= fh:read()
+      fh:close()
+      full= tonumber(full)
+      if full ~= nil then
+        fh= io.open("/sys/class/power_supply/"..bat.."/charge_now", "r")
+        if fh ~= nil then
+           local now= fh:read()
+           local est= ''
+           fh:close()
+           if fraxbat_st == stat then
+              delta= os.difftime(os.time(),fraxbat_ts)
+              est= math.abs(fraxbat_ch - now)
+              if delta > 30 and est > 0 then
+                 est= delta/est
+                 if now == fraxbat_now then
+                    est= fraxbat_est
+                 else
+                    fraxbat_est= est
+                    fraxbat_now= now
+                 end
+                 if stat == 'D' then
+                    est= now*est
+                 else
+                    est= (full-now)*est
+                 end
+                 local h= math.floor(est/3600)
+                 est= est - h*3600
+                 est= string.format(' %d:%02d',h,math.floor(est/60))
+              else
+                 est=''
+              end
+           else
+              fraxbat_st= stat
+              fraxbat_ts= os.time()
+              fraxbat_ch= now
+              fraxbat_now= nil
+              fraxbat_est= nil
+           end
+           charge='<'..tag..'>'..tostring(math.ceil((100*now)/full))..'%</'..tag..'>'..est
+        end
+      end
+   end
+   if stat == 'D' then
+      pstat= '▼'
+   elseif stat == 'C' then
+      pstat= '▲'
+   else
+      pstat= stat
+   end
+   tbw.text= pstat..charge
+end
+
+
+
 -- Standard awesome library
 require("awful")
 require("awful.autofocus")
@@ -77,7 +165,7 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 -- {{{ Wibox
 -- Create a textclock widget
 mytextclock = awful.widget.textclock({ align = "right" })
-
+fraxbat = widget({type="textbox"})
 -- Create a systray
 mysystray = widget({ type = "systray" })
 
@@ -152,6 +240,7 @@ for s = 1, screen.count() do
         mylayoutbox[s],
         mytextclock,
         s == 1 and mysystray or nil,
+        fraxbat,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
     }
@@ -177,22 +266,24 @@ globalkeys = awful.util.table.join(
             awful.client.focus.byidx( 1)
             if client.focus then client.focus:raise() end
         end),
-    awful.key({ modkey,           }, "j",
-        function ()
-            awful.client.focus.byidx( 1)
-            if client.focus then client.focus:raise() end
-        end),
+    -- awful.key({ modkey,           }, "j",
+    --     function ()
+    --         awful.client.focus.byidx( 1)
+    --         if client.focus then client.focus:raise() end
+    --     end),
 
-    awful.key({ modkey,           }, "k",
-        function ()
-            awful.client.focus.byidx(-1)
-            if client.focus then client.focus:raise() end
-        end),
+    -- awful.key({ modkey,           }, "k",
+    --     function ()
+    --         awful.client.focus.byidx(-1)
+    --         if client.focus then client.focus:raise() end
+    --     end),
     awful.key({ modkey,           }, "space", function () awful.screen.focus_relative(-1) end),
 
     -- Layout manipulation
-    awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end),
-    awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end),
+    -- awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end),
+    -- awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end),
+    awful.key({ modkey,           }, "j", awful.tag.viewprev),
+    awful.key({ modkey,           }, "k", awful.tag.viewnext),
     awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
     awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
@@ -206,7 +297,8 @@ globalkeys = awful.util.table.join(
 
     -- Standard program
     awful.key({ modkey,           }, "t", function () awful.util.spawn(terminal) end),
-    awful.key({ "Control", "Mod1" }, "l", function () awful.util.spawn("xlock -mode blank") end),
+    -- awful.key({ "Control", "Mod1" }, "l", function () awful.util.spawn("xlock -mode blank") end),
+    awful.key({ "Control", "Mod1" }, "l", function () awful.util.spawn("gnome-screensaver-command --lock") end),
     awful.key({ modkey, "Shift"   }, "m", function () awful.util.spawn("thunar") end),
     awful.key({ modkey,           }, "f", function () awful.util.spawn("google-chrome") end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
@@ -349,4 +441,7 @@ client.add_signal("focus", function(c) c.border_color = beautiful.border_focus e
 client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
 
+-- battery hook, somewehere at the bottom of your rc.lua
+awful.hooks.timer.register(10, function () hook_fraxbat(fraxbat,'BAT0') end)
 awful.util.spawn_with_shell("~/work/supervisord/bin/supervisord -c ~/.config/awesome/supervisor.conf")
+awful.util.spawn_with_shell("nitrogen --restore")
