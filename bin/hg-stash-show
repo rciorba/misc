@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ ! -d ".hg" ]; then
+    echo "this doesn't look like a mercurial repo"
+    exit 1
+fi
+
+mkdir -p .hg/stash
+patch_series=($(ls .hg/stash/*.diff 2>/dev/null))
+
+if [ ! $patch_series ]; then
+   echo "empty patch queue"
+   exit 2
+fi
+
+last_patch=${patch_series[-1]}
+
+cat $last_patch
+

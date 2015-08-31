@@ -67,7 +67,7 @@ for branch in branches
   date = DateTime.parse(date_line)
   age = now-date
   if age > options[:age]
-    puts "deleteing #{branch}"
+    puts "deleting #{branch}"
     if not options[:dry]
       if options[:local]
         `git branch -D #{branch}`
