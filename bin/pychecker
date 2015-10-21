@@ -6,8 +6,9 @@ then
   ve="${path%%/*}"
   source /home/rciorba/work/$ve/bin/activate
   #http://pylint-messages.wikidot.com/all-codes
-  pylint "$1"  -f parseable -d c0111,c0103,i0011,i0012,i0013,w0511$PYLINT_IGNORE -r n 2>/dev/null
+  ignore=e1101,e1103,c0111,c0103,i0011,i0012,i0013,w0511,w0232,r0904$PYLINT_IGNORE
+  pylint "$1" -f parseable -d $ignore -r n | grep -v ".Meta]" 2>/dev/null
 fi
-pyflakes "$1"
-pep8 "$1" --max-line-length=110
+# pyflakes "$1"
+# pep8 "$1" --max-line-length=110
 true

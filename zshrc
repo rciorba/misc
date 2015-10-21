@@ -15,7 +15,7 @@ ZSH_THEME="radu"
 CASE_SENSITIVE="true"
 
 # Comment this out to disable weekly auto-update checks
-# DISABLE_AUTO_UPDATE="true"
+DISABLE_AUTO_UPDATE="true"
 
 # Uncomment following line if you want to disable colors in ls
 # DISABLE_LS_COLORS="true"
@@ -34,10 +34,18 @@ plugins=(git)
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
-alias eo="emacsclient -n"
+#alias eo="emacsclient -n"
 
 workon(){
     source ~/work/$1/bin/activate
 }
 venvs=(`cd ~/work; /bin/ls `)
 compctl -k venvs workon
+
+export PIP_DOWNLOAD_CACHE='/home/rciorba/.pip_cache'
+export PATH=/home/rciorba/bin/:$PATH
+export EDITOR=eo
+
+ack(){
+  ack-grep $@ --ignore-dir=migrations --ignore-dir=node_modules
+}

@@ -1,3 +1,9 @@
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (setq emacs-lib-folder "~/.emacs.d/lisp")
 (add-to-list 'load-path emacs-lib-folder)
 (delete 'Git vc-handled-backends)
@@ -38,27 +44,29 @@
 (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
 
 
-(require 'flymake)
+(add-hook 'after-init-hook #'global-flycheck-mode)
+;; (require 'flymake)
 ;; (flymake-mode 0)
-(delete '("\\.html?\\'" flymake-xml-init) flymake-allowed-file-name-masks)
-(load-library "flymake-cursor")
+;; (delete '("\\.html?\\'" flymake-xml-init) flymake-allowed-file-name-masks)
+;; (load-library "flymake-cursor")
 
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(flymake-errline ((((class color)) (:underline "OrangeRed"))))
- '(flymake-warnline ((((class color)) (:underline "yellow")))))
+;; (custom-set-faces
+;;  ;; custom-set-faces was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+;;  '(flymake-errline ((((class color)) (:underline "OrangeRed"))))
+;;  '(flymake-warnline ((((class color)) (:underline "yellow")))))
 
 
-(add-to-list 'load-path "~/.emacs.d/yasnippet/")
+(setq yas-snippet-dirs "~/.emacs.d/snip")
 (require 'yasnippet)
 ;; (yas-reload-all)
 
 ; enable minor modes
 (setq ido-enable-flex-matching t)
 (setq ido-everywhere t)
+(electric-pair-mode 1)
 (ido-mode 1)
 (tool-bar-mode 0)
 ;; (tabbar-mode 1)
@@ -141,6 +149,46 @@
 (global-set-key [\M-\S-down] 'move-text-down)
 
 
+(require 'virtualenvwrapper)
+(venv-initialize-interactive-shells) ;; if you want interactive shell support
+(venv-initialize-eshell) ;; if you want eshell support
+(setq venv-location "/home/rciorba/work/")
+
+
+(defun project-directory (buffer-name)
+  "Returns the root directory of the project that contains the
+given buffer. Any directory with a .git or .jedi file/directory
+is considered to be a project root."
+  (interactive)
+  (let ((root-dir (file-name-directory buffer-name)))
+    (while (and root-dir
+                (not (file-exists-p (concat root-dir ".git")))
+                (not (file-exists-p (concat root-dir ".jedi"))))
+      (setq root-dir
+            (if (equal root-dir "/")
+                nil
+              (file-name-directory (directory-file-name root-dir)))))
+    root-dir))
+
+(defun project-name (buffer-name)
+  "Returns the name of the project that contains the given buffer."
+  (let ((root-dir (project-directory buffer-name)))
+    (if root-dir
+        (file-name-nondirectory
+         (directory-file-name root-dir))
+      nil)))
+
+(defun jedi-setup-venv ()
+  "Activates the virtualenv of the current buffer."
+  (let ((project-name (project-name buffer-file-name)))
+    (when project-name (venv-workon project-name))))
+
+(setq jedi:setup-keys t)
+(setq jedi:complete-on-dot t)
+(add-hook 'python-mode-hook 'jedi-setup-venv)
+(add-hook 'python-mode-hook 'jedi:setup)
+
+
 ;; python mode combined with outline minor mode:
 (add-hook 'python-mode-hook
           (lambda ()
@@ -161,51 +209,55 @@
             (local-set-key (kbd "C-c C-t") 'outline-hide-body)
             (local-set-key (kbd "C-c C-s") 'outline-hide-subtree)
             (local-set-key (kbd "C-c C-v") 'outline-show-subtree)
-            (define-key python-mode-map "\C-m" 'newline-and-indent)))
+            (define-key python-mode-map "\C-j" 'newline-and-indent)))
 
 
-;; flymake with pyflakes:
-(when (load "flymake" t)
-  (defun flymake-pyflakes-init ()
-    (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                       'flymake-create-temp-inplace))
-           (local-file (file-relative-name
-                        temp-file
-                        (file-name-directory buffer-file-name))))
-      (list "~/repos/misc/bin/pychecker" (list local-file))))
-  (add-to-list 'flymake-allowed-file-name-masks
-               '("\\.py\\'" flymake-pyflakes-init)))
-(global-set-key [(control f10)] 'flymake-mode)
+;; ;; flymake with pyflakes:
+;; (when (load "flymake" t)
+;;   (defun flymake-pyflakes-init ()
+;;     (let* ((temp-file (flymake-init-create-temp-buffer-copy
+;;                        'flymake-create-temp-inplace))
+;;            (local-file (file-relative-name
+;;                         temp-file
+;;                         (file-name-directory buffer-file-name))))
+;;       (list "~/repos/misc/bin/pychecker" (list local-file))))
+;;   (add-to-list 'flymake-allowed-file-name-masks
+;;                '("\\.py\\'" flymake-pyflakes-init)))
+(global-set-key [(control f10)] 'flycheck-mode)
 
 
-(defun flymake-erlang-init ()
-  (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                     'flymake-create-temp-inplace))
-         (local-file (file-relative-name temp-file
-                                         (file-name-directory buffer-file-name))))
-    (list "eflymake.sh"
-          (list local-file))))
-(add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
-(setq flymake-log-level 3)
-(add-hook 'erlang-mode-hook
-          '(lambda ()
-             (flymake-mode t)
-             (define-key erlang-mode-map "\C-m" 'newline-and-indent)))
+;; (defun flymake-erlang-init ()
+;;   (let* ((temp-file (flymake-init-create-temp-buffer-copy
+;;                      'flymake-create-temp-inplace))
+;;          (local-file (file-relative-name temp-file
+;;                                          (file-name-directory buffer-file-name))))
+;;     (list "eflymake.sh"
+;;           (list local-file))))
+;; (add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
+;; (setq flymake-log-level 3)
+;; (add-hook 'erlang-mode-hook
+;;           '(lambda ()
+;;              (flymake-mode t)
+;;              (define-key erlang-mode-map "\C-m" 'newline-and-indent)))
 
+(setq erlang-mode-hook
+    (function (lambda ()
+                (setq indent-tabs-mode nil))))
 
-;; (require 'go-mode-load)
-(defun flymake-golang-init ()
-  (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                     'flymake-create-temp-inplace))
-         (local-file (file-relative-name temp-file
-                                         (file-name-directory buffer-file-name))))
-    (list "go"
-          (list "build" local-file))))
-(add-to-list 'flymake-allowed-file-name-masks '("\\.go\\'" flymake-golang-init))
+;; ;; (require 'go-mode-load)
+;; (defun flymake-golang-init ()
+;;   (let* ((temp-file (flymake-init-create-temp-buffer-copy
+;;                      'flymake-create-temp-inplace))
+;;          (local-file (file-relative-name temp-file
+;;                                          (file-name-directory buffer-file-name))))
+;;     (list "go"
+;;           (list "build" local-file))))
+;; (add-to-list 'flymake-allowed-file-name-masks '("\\.go\\'" flymake-golang-init))
 (add-hook 'go-mode-hook
           '(lambda ()
-             (flymake-mode t)
+             ;; (flymake-mode t)
              (define-key go-mode-map "\C-m" 'newline-and-indent)))
 
 (server-start)
 ;; (put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)

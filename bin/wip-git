@@ -1,0 +1,7 @@
+#!/bin/bash
+branch="rciorba-wip"
+git branch -D $branch
+git push origin :$branch
+git branch $branch
+git push origin $branch
+
