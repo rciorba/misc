@@ -20,7 +20,10 @@
 (global-set-key (kbd "M-h") 'backward-kill-word)
 (global-set-key (kbd "M-?") 'mark-paragraph)
 (global-set-key (kbd "C-z") 'undo-only)
+(global-set-key (kbd "<f6>") 'whitespace-cleanup)
 (global-unset-key (kbd "C-/"))
+
+(require 'midnight)
 
 (require 'uniquify)
 (setq
@@ -66,9 +69,10 @@
 ; enable minor modes
 (setq ido-enable-flex-matching t)
 (setq ido-everywhere t)
-(electric-pair-mode 1)
+(electric-pair-mode 0)
 (ido-mode 1)
 (tool-bar-mode 0)
+(scroll-bar-mode 0)
 ;; (tabbar-mode 1)
 ;; (iswitchb-mode 0)
 (desktop-save-mode 1)
@@ -149,10 +153,16 @@
 (global-set-key [\M-\S-down] 'move-text-down)
 
 
+;; (defun electric-pair ()
+;;   "If at end of line, insert character pair without surrounding spaces.
+;;     Otherwise, just insert the typed character."
+;;   (interactive)
+;;   (let (parens-require-spaces) (insert-pair)))
+
 (require 'virtualenvwrapper)
 (venv-initialize-interactive-shells) ;; if you want interactive shell support
 (venv-initialize-eshell) ;; if you want eshell support
-(setq venv-location "/home/rciorba/work/")
+(setq venv-location "/home/rciorba/.venvs/")
 
 
 (defun project-directory (buffer-name)
@@ -184,7 +194,7 @@ is considered to be a project root."
     (when project-name (venv-workon project-name))))
 
 (setq jedi:setup-keys t)
-(setq jedi:complete-on-dot t)
+;; (setq jedi:complete-on-dot t)
 (add-hook 'python-mode-hook 'jedi-setup-venv)
 (add-hook 'python-mode-hook 'jedi:setup)
 
@@ -209,6 +219,13 @@ is considered to be a project root."
             (local-set-key (kbd "C-c C-t") 'outline-hide-body)
             (local-set-key (kbd "C-c C-s") 'outline-hide-subtree)
             (local-set-key (kbd "C-c C-v") 'outline-show-subtree)
+            ;; electric pair for python
+            ;; (define-key python-mode-map "\"" 'electric-pair)
+            ;; (define-key python-mode-map "\'" 'electric-pair)
+            ;; (define-key python-mode-map "(" 'electric-pair)
+            ;; (define-key python-mode-map "[" 'electric-pair)
+            ;; (define-key python-mode-map "{" 'electric-pair)
+
             (define-key python-mode-map "\C-j" 'newline-and-indent)))
 
 
@@ -242,7 +259,7 @@ is considered to be a project root."
 
 (setq erlang-mode-hook
     (function (lambda ()
-                (setq indent-tabs-mode nil))))
+                (setq electric-indent-inhibit t))))
 
 ;; ;; (require 'go-mode-load)
 ;; (defun flymake-golang-init ()
@@ -259,5 +276,43 @@ is considered to be a project root."
              (define-key go-mode-map "\C-m" 'newline-and-indent)))
 
 (server-start)
-;; (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
+
+
+;; (defun erlang-indent-line ()
+;;   "Indent current line as Erlang code.
+;; Return the amount the indentation changed by."
+;;   (let ((pos (- (point-max) (point)))
+;; 	indent beg
+;; 	shift-amt)
+;;     (beginning-of-line 1)
+;;     (setq beg (point))
+;;     (skip-chars-forward " \t")
+;;     (cond ((looking-at "%")
+;; 	   (setq indent (funcall comment-indent-function))
+;; 	   (setq shift-amt (- indent (current-column))))
+;; 	  (t
+;; 	   (setq indent (erlang-calculate-indent))
+;; 	   (cond ((null indent)
+;; 		  (setq indent (current-indentation)))
+;; 		 ((eq indent t)
+;; 		  ;; This should never occur here.
+;; 		  (error "Erlang mode error"))
+;; 		 ;;((= (char-syntax (following-char)) ?\))
+;; 		 ;; (setq indent (1- indent)))
+;; 		 )
+;; 	   (setq shift-amt (- indent (current-column)))))
+;;     (if (zerop shift-amt)
+;; 	nil
+;;       (delete-region beg (point))
+;;       (indent-to indent))
+;;     ;; If initial point was within line's indentation, position
+;;     ;; after the indentation. Else stay at same point in text.
+;;     (if (> (- (point-max) pos) (point))
+;; 	(goto-char (- (point-max) pos)))
+;;     shift-amt))
+
+(setq latex-run-command "pdflatex")
+
+(setq php-template-compatibility nil)
+(put 'upcase-region 'disabled nil)
