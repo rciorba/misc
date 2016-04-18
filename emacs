@@ -5,6 +5,7 @@
 (package-initialize)
 
 (setq emacs-lib-folder "~/.emacs.d/lisp")
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 (add-to-list 'load-path emacs-lib-folder)
 (delete 'Git vc-handled-backends)
 
