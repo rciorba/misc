@@ -37,11 +37,11 @@ end
 
 set -g VIRTUAL_ENV_DISABLE_PROMPT 1
 function workon --description "activate virtualenv"
-     source ~/work/$argv[1]/bin/activate.fish
+     source ~/.venvs/$argv[1]/bin/activate.fish
 end
 
 function ack --description "ack"
-     ack-grep $argv  --ignore-dir=migrations
+     ack-grep $argv  --ignore-dir=migrations --ignore-dir=buid
 end
 
 function descrotify --description "rename screenshots"
@@ -53,6 +53,7 @@ end
 
 
 set -x PIP_DOWNLOAD_CACHE '/home/rciorba/.pip_cache'
-set -x PATH $PATH /home/rciorba/software/google-cloud-sdk/google-cloud-sdk/bin /home/rciorba/miniconda/bin
+set -x PATH $PATH /home/rciorba/repos/misc/bin
 set -x LANG en_US.UTF-8
 set -x KERL_ENABLE_PROMPT 1
+
