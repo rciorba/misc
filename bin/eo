@@ -1,10 +1,10 @@
 #!/bin/bash
 for fname in $@; do
-    line_num=$(echo $fname | grep -o -E ":[0-9]+:?$")
+    line_num=$(echo $fname | grep -o -E ":[0-9]+(:[0-9]*)?$")
     if [ $line_num ]
     then
         fname=${fname/%$line_num/""}
-        line_num="+"$(echo $line_num | grep -o -E "[0-9]+")
+        line_num="+"$(echo $line_num | grep -o -E "[0-9]+(:[0-9]+)?+")
     fi
     emacsclient -n $line_num $fname
 done
