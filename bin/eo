@@ -1,10 +1,36 @@
-#!/bin/bash
-for fname in $@; do
-    line_num=$(echo $fname | grep -o -E ":[0-9]+(:[0-9]*)?$")
-    if [ $line_num ]
-    then
-        fname=${fname/%$line_num/""}
-        line_num="+"$(echo $line_num | grep -o -E "[0-9]+(:[0-9]+)?+")
-    fi
-    emacsclient -n $line_num $fname
-done
+#!/usr/bin/python
+
+import sys
+import re
+import subprocess
+
+
+target = sys.argv[1]
+match = re.match(
+    "(?P<fname>[a-zA-Z0-9/\.]*):(?P<linum>[0-9]+):?(?P<colnum>[0-9]*)",
+    target)
+if match is None:
+    fname = target.split(":")[0]
+    linum = None
+    print("Failed to parse line number from target '{}'".format(target))
+    print(
+        "emacsclient {}".format(fname)
+    )
+    subprocess.check_call(
+        "emacsclient -n {}".format(fname),
+        shell=True,
+    )
+else:
+    args = match.groupdict()
+    fname = args['fname']
+    linum = args['linum']
+    colnum = args.get('colnum')
+    if colnum:
+        linum = "{}:{}".format(linum, colnum)
+    print(
+        "emacsclient -n +{} {}".format(linum, fname)
+    )
+    subprocess.check_call(
+        "emacsclient -n +{} {}".format(linum, fname),
+        shell=True
+    )
