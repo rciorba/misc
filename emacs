@@ -15,6 +15,7 @@
                          ("melpa" . "http://melpa.milkbox.net/packages/")
        ))
 
+(setq-default fill-column 100)
 
 ;; general keybindings
 (global-set-key (kbd "C-h") 'delete-backward-char)
@@ -154,6 +155,7 @@
 (global-set-key [\M-\S-down] 'move-text-down)
 
 
+
 ;; (defun electric-pair ()
 ;;   "If at end of line, insert character pair without surrounding spaces.
 ;;     Otherwise, just insert the typed character."
@@ -189,15 +191,22 @@ is considered to be a project root."
          (directory-file-name root-dir))
       nil)))
 
-(defun jedi-setup-venv ()
-  "Activates the virtualenv of the current buffer."
-  (let ((project-name (project-name buffer-file-name)))
-    (when project-name (venv-workon project-name))))
+;; (defun jedi-setup-venv ()
+;;   "Activates the virtualenv of the current buffer."
+;;   (let ((project-name (project-name buffer-file-name)))
+;;     (when project-name (venv-workon project-name))))
 
 (setq jedi:setup-keys t)
 ;; (setq jedi:complete-on-dot t)
-(add-hook 'python-mode-hook 'jedi-setup-venv)
+;; (add-hook 'python-mode-hook 'jedi-setup-venv)
 (add-hook 'python-mode-hook 'jedi:setup)
+;; (add-hook 'python-mode-hook (lambda () (auto-complete-mode -1)))
+(setq ac-auto-start nil)
+;; (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+
+;; workarround for witch-function-mode cython-mode issue
+;; https://github.com/bbatsov/prelude/issues/940
+(add-hook 'cython-mode-hook (lambda () (which-func-mode -1)))
 
 
 ;; python mode combined with outline minor mode:
@@ -229,6 +238,7 @@ is considered to be a project root."
 
             (define-key python-mode-map "\C-j" 'newline-and-indent)))
 
+(add-hook 'cython-mode-hook (lambda () (which-func-mode -1)))
 
 ;; ;; flymake with pyflakes:
 ;; (when (load "flymake" t)
@@ -317,3 +327,16 @@ is considered to be a project root."
 
 (setq php-template-compatibility nil)
 (put 'upcase-region 'disabled nil)
+
+; Highlight tabs and trailing whitespace (custom-set-faces defines colours)
+(setq whitespace-style '(face trailing empty))
+(setq whitespace-global-modes '(not rcirc-mode))
+;; (global-whitespace-mode)
+; Display zero-width unicode characters as standard spaces so we don't miss them
+(setq whitespace-display-mappings '((space-mark ?\x200B [? ])
+                                    (space-mark ?\x200C [? ])
+                                    (space-mark ?\x200D [? ])
+                                    (space-mark ?\x2060 [? ])
+(space-mark ?\xFEFF [? ])))
+;; |﻿⁠⁠⁠⁠|there are 5 characters betweeen the pipes :D
+;; |﻿⁠⁠⁠⁠| more shady characters
