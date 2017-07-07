@@ -1,0 +1,34 @@
+#!/usr/bin/python3
+
+import collections
+import sys
+import subprocess
+
+class FMT:
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
+
+
+def parse_lines(fd):
+    for line in fd.readlines():
+        date, hour, commit_id, message = line.split(" ", 3)
+        yield date, commit_id, message.strip()
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Specify the month: 2017-02")
+        sys.exit(1)
+    month = sys.argv[1]
+    history = collections.OrderedDict()
+    for date, commit_id, message in parse_lines(sys.stdin):
+        if date.startswith(month):
+            history.setdefault(date, []).append((commit_id, message))
+
+    for (date, commits) in history.items():
+        print(FMT.BOLD + "Commits on {}".format(date) + FMT.END)
+        for commit_id, message in commits:
+            print("\t\t• {} {}".format(commit_id, message))
+
+main()
