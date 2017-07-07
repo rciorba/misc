@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import re
@@ -7,10 +7,10 @@ import subprocess
 
 target = sys.argv[1]
 match = re.match(
-    "(?P<fname>[a-zA-Z0-9/\.]*):(?P<linum>[0-9]+):?(?P<colnum>[0-9]*)",
+    "(?P<fname>[^:]*):(?P<linum>[0-9]+):?(?P<colnum>[0-9]*)",
     target)
 if match is None:
-    fname = target.split(":")[0]
+    fname = target.rsplit(":")[0]
     linum = None
     print("Failed to parse line number from target '{}'".format(target))
     print(
