@@ -41,7 +41,7 @@ function workon --description "activate virtualenv"
 end
 
 function ack --description "ack"
-     ack-grep $argv  --ignore-dir=migrations --ignore-dir=buid
+     ack-grep $argv  --ignore-dir=migrations --ignore-dir=buid --nogroup
 end
 
 function descrotify --description "rename screenshots"
