@@ -33,6 +33,8 @@ optparse.parse!
 
 prefix = options[:prefix]
 
+puts `git fetch --prune`
+
 if options[:local]
   branches = `git branch`.split("\n")
 else
