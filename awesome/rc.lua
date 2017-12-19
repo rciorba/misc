@@ -60,16 +60,16 @@ local layouts =
 {
     awful.layout.suit.floating,
     awful.layout.suit.tile,
-    awful.layout.suit.tile.left,
+    -- awful.layout.suit.tile.left,
     awful.layout.suit.tile.bottom,
-    awful.layout.suit.tile.top,
-    awful.layout.suit.fair,
-    awful.layout.suit.fair.horizontal,
-    awful.layout.suit.spiral,
-    awful.layout.suit.spiral.dwindle,
+    -- awful.layout.suit.tile.top,
+    -- awful.layout.suit.fair,
+    -- awful.layout.suit.fair.horizontal,
+    -- awful.layout.suit.spiral,
+    -- awful.layout.suit.spiral.dwindle,
     awful.layout.suit.max,
     awful.layout.suit.max.fullscreen,
-    awful.layout.suit.magnifier
+    -- awful.layout.suit.magnifier
 }
 -- }}}
 
@@ -256,9 +256,9 @@ globalkeys = awful.util.table.join(
     -- Standard program
     awful.key({ modkey,           }, "t", function () awful.util.spawn(terminal) end),
     -- awful.key({ "Control", "Mod1" }, "l", function () awful.util.spawn("xlock -mode blank") end),
-    awful.key({ "Control", "Mod1" }, "l", function () awful.util.spawn("gnome-screensaver-command --lock") end),
+    awful.key({ "Control", "Mod1" }, "l", function () awful.util.spawn("xscreensaver-command --lock") end),
     awful.key({ modkey, "Shift"   }, "m", function () awful.util.spawn("thunar") end),
-    awful.key({ modkey,           }, "f", function () awful.util.spawn("google-chrome") end),
+    awful.key({ modkey,           }, "f", function () awful.util.spawn("firefox") end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
@@ -463,3 +463,4 @@ client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_n
 
 -- awful.util.spawn_with_shell("~/.venv/supervisord/bin/supervisord -c ~/repos/misc/supervisor.conf")
 awful.util.spawn_with_shell("nitrogen --restore")
+awful.util.spawn_with_shell("xmodmap /home/rciorba/repos/misc/Xmodmap")
