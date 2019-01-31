@@ -41,6 +41,10 @@ function workon --description "activate virtualenv"
      source ~/.venvs/$argv[1]/bin/activate.fish
 end
 
+function eworkon --description "activate kerl installation"
+     source ~/.kerl/inst/$argv[1]/activate.fish
+end
+
 function ack --description "ack"
      ack-grep $argv  --ignore-dir=migrations --ignore-dir=buid --nogroup
 end
