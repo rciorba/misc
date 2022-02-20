@@ -1,3 +1,5 @@
+-- awesome_mode: api-level=6:screen=on
+
 -- If LuaRocks is installed, make sure that packages installed through it are
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
@@ -24,29 +26,12 @@ local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
 
 local function debug(key, value)
-   print(tostring(title) .. tostring(value))
-   -- naughty.notify({ preset = naughty.config.presets.low,
-   --                  title = tostring(key),
-   --                  text = tostring(value),
-   --                  timeout = 60
-   -- })
-end
-
-local function dmp()
-   for _, c in ipairs(client.get()) do
-      -- debug(
-      --    "dump",
-      --    tostring(c) .. " wants to be"
-      -- )
-      i = nil
-      if not (c.desired_screen == nil) then
-         i = c.desired_screen
-      end
-      debug(
-         "dump",
-         tostring(c) .. " wants to be on " .. tostring(i) .. " / " .. tostring(c.first_tag.name)
-      )
-   end
+   print(tostring(key) .. " " .. tostring(value))
+   naughty.notify({ preset = naughty.config.presets.low,
+                    title = tostring(key),
+                    text = tostring(value),
+                    timeout = 60
+   })
 end
 
 -- {{{ Error handling
@@ -211,7 +196,7 @@ screen.connect_signal("property::geometry", set_wallpaper)
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
-    set_wallpaper(s)
+    -- set_wallpaper(s)
 
     -- Each screen has its own tag table.
     awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.suit.       tile)
@@ -498,24 +483,87 @@ clientbuttons = gears.table.join(
     end)
 )
 
-local function main_layout()
-   local geo = screen[1].geometry
-   local new_width = math.ceil(3*geo.width/4)
-   local new_width2 = geo.width - new_width
-   screen[1]:fake_resize(geo.x, geo.y, new_width, geo.height)
-   screen.fake_add(geo.x + new_width, geo.y, new_width2, geo.height)
+local function inspect(s)
+    g = s.geometry
+    local f_count = 0
+    if s.fakes then
+       for _ in pairs(s.fakes) do
+          f_count = f_count + 1
+       end
+    end
+    tail = " has " .. f_count .. " fakes"
+    return s.index .. " " .. g.width .. "x" .. g.height .. tail
 end
 
 
--- globalkeys = gears.table.join(
---     globalkeys,
---     awful.key({ modkey,           }, "#71",   function() main_layout() end,
---               {description="main layout", group="layouts"}),
---     awful.key({ modkey, "Shift"   }, "x",     function() dmp() end,
---               {description = "Dump debug info.", group = "debug"}),
---     awful.key({ modkey,           }, "#72",   function() dmp() end,
---               {description = "Dump debug info.", group = "debug"})
--- )
+local function main_layout()
+   if (screen.count() ~= 1) then
+      debug("more than 1 screen, bailing on main layout", screen.count())
+      return
+   end
+   local geo = screen[1].geometry
+   local new_width = math.ceil(3*geo.width/4) - 30  -- personal sweet spot for main screen size
+   local new_width2 = geo.width - new_width
+   local parent = screen[1]
+   parent:fake_resize(geo.x, geo.y, new_width, geo.height)
+   fake = screen.fake_add(geo.x + new_width, geo.y, new_width2, geo.height)
+   debug("new fake "..fake.index, inspect(fake))
+   if (parent.fakes == nil) then
+      debug("no fakes")
+      parent.fakes = {}
+   end
+   parent.fakes[fake.index] = fake
+   debug("parent.fakes", #(parent.fakes))
+   debug("parent", inspect(parent))
+   collectgarbage('collect')
+end
+
+
+local function resize_fake_screen(delta)
+   if (screen.count() ~= 2) then
+      return
+   end
+   local geo1 = screen[1].geometry
+   local geo2 = screen[2].geometry
+   screen[1]:fake_resize(geo1.x, geo1.y, geo1.width+delta, geo1.height)
+   screen[2]:fake_resize(geo2.x+delta, geo2.y, geo2.width-delta, geo2.height)
+end
+
+
+local function dmp()
+   for _, c in ipairs(client.get()) do
+      -- debug(
+      --    "dump",
+      --    tostring(c) .. " wants to be"
+      -- )
+      s = "X"
+      if not (c.desired_screen == nil) then
+         s = c.desired_screen
+      end
+      debug(
+         "dump",
+         tostring(c) .. " on " .. c.screen.index .. " wants to be on disp: " .. tostring(s) .. " tag: " .. tostring(c.first_tag.name)
+      )
+   end
+   for s in screen do
+      debug("screen", inspect(s))
+   end
+   debug("count", screen.count())
+   debug("instances", screen.instances())
+end
+
+
+globalkeys = gears.table.join(
+    globalkeys,
+    awful.key({ modkey,           }, "#73",   function() main_layout() end,
+              {description="2 fake screens", group="layouts"}),
+    awful.key({ modkey,           }, "#71",   function() resize_fake_screen(-15) end,
+              {description="resize screen -5", group="layouts"}),
+    awful.key({ modkey,           }, "#74",   function() resize_fake_screen( 15) end,
+              {description="resize screen +5", group="layouts"}),
+    awful.key({ modkey,           }, "#75",   function() dmp() end,
+              {description = "Dump debug info.", group = "debug"})
+)
 
 
 -- Set keys
@@ -680,10 +728,11 @@ tag.connect_signal("request::screen", function(t)
 end)
 
 screen.connect_signal("added", function(new_screen)
+    debug("removed", inspect(new-screen))
     local output = next(new_screen.outputs)
 
     if (output == nil) then
-       print("added a fake screen")
+       debug("added a fake screen", new_screen)
        return
     end
     naughty.notify({ text = output .. " Connected" })
@@ -706,8 +755,25 @@ screen.connect_signal("added", function(new_screen)
 
 end)
 
+
+screen.connect_signal("removed", function(old_screen)
+    debug("removed", inspect(old_screen))
+    fakes = old_screen.fakes or {}
+    for _, fake in pairs(fakes) do
+       fake:fake_remove()
+    end
+    old_screen.fakes = nil
+    collectgarbage('collect')
+end)
+
+
+screen.connect_signal("list", function(old_screen)
+    debug("list", inspect(old_screen))
+end)
+
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
 
-print("\\m/")
+-- main_layout()
+dmp()
