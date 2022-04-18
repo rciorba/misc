@@ -1,3 +1,7 @@
+function nicePwd --description 'A nicer printout of the curren working directory'
+    printf (pwd | sed "s\\$HOME\\~\\")
+end
+
 function fish_prompt --description 'Write out the prompt'
     # Just calculate these once, to save a few cycles when displaying the prompt
         if not set -q __fish_prompt_hostname
@@ -24,13 +28,13 @@ function fish_prompt --description 'Write out the prompt'
                             end
                      end
                      # replace pwd with prompt_pwd if you want the compressed version
-                     printf '%s@%s:%s%s%s%s# ' $USER $__fish_prompt_hostname "$__fish_prompt_cwd" (pwd) "$__fish_prompt_normal" $__git_cb
+                     printf '%s@%s:%s%s%s%s# ' $USER $__fish_prompt_hostname "$__fish_prompt_cwd" (nicePwd) "$__fish_prompt_normal" $__git_cb
                 case '*'
                     if not set -q __fish_prompt_cwd
                             set -g __fish_prompt_cwd (set_color $fish_color_cwd)
                     end
 
-                    printf '%s%s@%s [%s%s%s] %s\n-> ' $VE_NAME $USER $__fish_prompt_hostname "$__fish_prompt_cwd" (pwd) "$__fish_prompt_normal" $__git_cb
+                    printf '%s%s@%s [%s%s%s] %s\n-> ' $VE_NAME $USER $__fish_prompt_hostname "$__fish_prompt_cwd" (nicePwd) "$__fish_prompt_normal" $__git_cb
          end
 end
 
