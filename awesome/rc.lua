@@ -22,12 +22,12 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 require("awful.hotkeys_popup.keys")
 
 local function debug(key, value)
-   print(tostring(key) .. " " .. tostring(value))
-   naughty.notify({ preset = naughty.config.presets.low,
-                    title = tostring(key),
-                    text = tostring(value),
-                    timeout = 60
-   })
+   -- print(tostring(key) .. " " .. tostring(value))
+   -- naughty.notify({ preset = naughty.config.presets.low,
+   --                  title = tostring(key),
+   --                  text = tostring(value),
+   --                  timeout = 60
+   -- })
 end
 
 -- {{{ Error handling
@@ -188,7 +188,6 @@ function restore_windows_to_desired_screen(new_screen)
     for _, c in ipairs(client.get()) do
        if not (c.desired_screen == nil) then
           tag_name = c.first_tag.name
-          --- XXX debug why tags can't be restored
           c:move_to_screen(c.desired_screen)
           tag = awful.tag.find_by_name(c.screen, tag_name)
           if not (tag == nil) then
@@ -197,9 +196,10 @@ function restore_windows_to_desired_screen(new_screen)
           else
              debug("unable to restore", tostring(c))
           end
+          -- now clear the "desired_screen"
+          c.desired_screen = nil
        end
     end
-    print("end screen.signal::added")
 
 end
 
@@ -207,7 +207,6 @@ end
 screen.connect_signal("request::desktop_decoration", function(s)
     -- Each screen has its own tag table.
     awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.suit.tile)
-    print("request::desktop_decoration")
     restore_windows_to_desired_screen(s)
 
     -- Create a promptbox for each screen
@@ -512,12 +511,7 @@ client.connect_signal("request::default_keybindings", function()
                 {description = "toggle floating", group = "client"}),
         awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end,
                 {description = "move to master", group = "client"}),
-        awful.key({ modkey,           }, "o",      function (c)
-              local old_index = tostring(c.screen.index)
-              c:move_to_screen()
-              c.desired_screen = c.screen.index
-              debug("moving", old_index .. " -> " .. tostring(c.desired_screen))
-        end,
+        awful.key({ modkey,           }, "o",      function (c) c:move_to_screen()               end,
                 {description = "move to screen", group = "client"}),
         awful.key({ modkey, "Shift"   }, "t",      function (c) c.ontop = not c.ontop            end,
                 {description = "toggle keep on top", group = "client"}),
@@ -570,13 +564,9 @@ local function wide_split_layout()
       parent.fakes = {}
    end
    parent.fakes[fake.index] = fake
-   print("----layouts----")
    for k, v in pairs(fake.tags) do
-      print(k)
-      print(v)
       v.layout = awful.layout.suit.tile.bottom
    end
-   print("----layouts----")
    debug("parent.fakes", #(parent.fakes))
    debug("parent", inspect(parent))
    collectgarbage('collect')
@@ -625,13 +615,9 @@ end
 
 
 local function non_wide_layout()
-   -- local fakes = {}
-   -- local f_count = 1
    for s in screen do
       if s.fakes then
          for _, f in pairs(s.fakes) do
-            -- fakes[f_count] = f
-            -- f_count = f_count + 1
             f:fake_remove()
          end
 
@@ -641,9 +627,6 @@ local function non_wide_layout()
          s:fake_resize(geo.x, geo.y, s.original_w, geo.height)
       end
    end
-   -- for _, f in pairs(fakes) do
-   --    f:fake_remove()
-   -- end
 end
 
 
@@ -810,22 +793,16 @@ tag.connect_signal("request::screen", function(t)
     end
 
     if not (fallback_tag == nil) then
-        -- local output = next(t.screen.outputs)
-        -- print("Output: " .. output .. " storing ")
-        -- if tag_store[output] == nil then
-        --     tag_store[output] = {}
-        -- end
 
         clients = t:clients()
-        -- tag_store[output][t.name] = clients
 
         for _, c in ipairs(clients) do
            debug("tag screen", inspect(t.screen))
            debug("relocation", c.name .. " moving from " .. c.screen.index .. " to " .. fallback_tag.index)
            c:move_to_tag(fallback_tag)
-           if c.desired_screen == nil then
-              c.desired_screen = t.screen.index
-           end
+           -- preserve info about which screen the window was originally on, so
+           -- we can restore it if the screen is reconnected.
+           c.desired_screen = t.screen.index
         end
     end
 end)
