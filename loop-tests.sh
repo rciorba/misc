@@ -2,10 +2,10 @@
 
 while python ~/repos/misc/bin/iwatch.py  .
        clear
-       py.test -v --capture=no --nomigrations $argv
-       if math "$status==0" > /dev/null
-            notify-send "TMR" -i ~/Pictures/passing.svg
+       pytest -v --capture=no $argv
+       if test $status -eq 0
+            notify-send "OK" -i ~/Pictures/passing.svg
         else
-           notify-send "TMR" -i ~/Pictures/failing.svg
+           notify-send "FAIL" -i ~/Pictures/failing.svg
        end
    end
