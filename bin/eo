@@ -1,36 +1,62 @@
 #!/usr/bin/python3
 
+import os
 import sys
 import re
 import subprocess
 
 
-target = sys.argv[1]
-match = re.match(
-    "(?P<fname>[^:]*):(?P<linum>[0-9]+):?(?P<colnum>[0-9]*)",
-    target)
-if match is None:
-    fname = target.rsplit(":")[0]
-    linum = None
-    print("Failed to parse line number from target '{}'".format(target))
-    print(
-        "emacsclient {}".format(fname)
-    )
-    subprocess.check_call(
-        "emacsclient -n {}".format(fname),
-        shell=True,
-    )
-else:
-    args = match.groupdict()
-    fname = args['fname']
-    linum = args['linum']
-    colnum = args.get('colnum')
-    if colnum:
-        linum = "{}:{}".format(linum, colnum)
-    print(
-        "emacsclient -n +{} {}".format(linum, fname)
-    )
-    subprocess.check_call(
-        "emacsclient -n +{} {}".format(linum, fname),
-        shell=True
-    )
+def fixup_fname(target):
+    # absolute path: /var/www/insights/src/insights/views/view_helpers.py
+    # missing src: insights/views/view_helpers.py
+    if not os.path.exists(target):
+        prefix = "/var/www/insights/"
+        if target.startswith(prefix):
+            print(target[len(prefix):])
+            return target[len(prefix):]
+        joined = os.path.join("src", target)
+        if os.path.exists(joined):
+            return joined
+    return target
+
+
+def open(target):
+    match = re.match(
+        "(?P<fname>[^:]*):(?P<linum>[0-9]+):?(?P<colnum>[0-9]*)",
+        target)
+    if match is None:
+        fname = fixup_fname(target.rsplit(":")[0])
+        linum = None
+        print("Failed to parse line number from target '{}'".format(target))
+        print(
+            "emacsclient {}".format(fname)
+        )
+        subprocess.check_call(
+            "emacsclient -n {}".format(fname),
+            shell=True,
+        )
+    else:
+        args = match.groupdict()
+        fname = fixup_fname(args['fname'])
+        linum = args['linum']
+        colnum = args.get('colnum')
+        if colnum:
+            linum = "{}:{}".format(linum, colnum)
+        print(
+            "emacsclient -n +{} {}".format(linum, fname)
+        )
+        subprocess.check_call(
+            "emacsclient -n +{} {}".format(linum, fname),
+            shell=True
+        )
+
+def main():
+    if len(sys.argv) <= 1:
+        sys.exit(0)
+
+    target = sys.argv[1]
+    open(target)
+
+
+if __name__ == "__main__":
+    main()
