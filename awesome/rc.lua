@@ -633,9 +633,9 @@ end
 
 globalkeys = gears.table.join(
     globalkeys,
-    awful.key({ modkey,           }, "#72",   function() non_wide_layout() end,
+    awful.key({ modkey,           }, "#73",   function() non_wide_layout() end,
               {description="single screen layout", group="layouts"}),
-    awful.key({ modkey,           }, "#73",   function() wide_split_layout() end,
+    awful.key({ modkey,           }, "#72",   function() wide_split_layout() end,
               {description="wide screen split layout", group="layouts"}),
     awful.key({ modkey,           }, "#71",   function() resize_fake_screen(-15) end,
               {description="resize screen -5", group="layouts"}),
