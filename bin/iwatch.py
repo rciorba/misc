@@ -5,7 +5,6 @@ import sys
 from os import path
 
 from inotify import adapters, constants
-import six
 
 
 def wait_for_dir(watched_path):
@@ -17,10 +16,11 @@ def wait_for_dir(watched_path):
             dir_name = event[2]
             if any(
                 [
+                    filename.startswith("#"),
                     filename.startswith(".#"),
                     filename.startswith("flycheck"),
                     filename.endswith("~"),
-                    filename.startswith("./.mypy_cache/"),
+                    dir_name.startswith("./.mypy_cache/"),
                     dir_name.endswith(".cache/v/cache"),
                 ]
             ):
