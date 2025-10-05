@@ -1,0 +1,114 @@
+#!/bin/bash
+
+export GUESS_SHELL="true"
+export SHELL=""
+
+
+get_parent_shell() {
+    if [ "$GUESS_SHELL" = "false" ]; then
+        echo $SHELL
+        return
+    fi
+    # Get the parent PID of this script
+    local ppid
+    ppid=$(ps -o ppid= -p $$ | tr -d ' ')
+
+    # Get the command name of the parent process
+    local parent_cmd
+    parent_cmd=$(ps -o comm= -p "$ppid")
+
+    # Some shells may show as full paths (e.g., /usr/bin/bash)
+    parent_cmd=$(basename "$parent_cmd")
+
+    echo "$parent_cmd"
+}
+
+find_ipc_sock() {
+    local uid
+    uid=$(id -u)
+    sock=$(ls -t "/run/user/$uid/" | grep "vscode-ipc" | head -1)
+    echo "/run/user/$uid/$sock"
+}
+
+find_code_bin_path () {
+    local path
+    path=$(ls -t ~/.vscode-server/cli/servers | grep Stable | head -1)
+    realpath "$HOME/.vscode-server/cli/servers/$path/server/bin/remote-cli"
+}
+
+
+echo_vars() {
+    local shell
+    shell=$(get_parent_shell)
+    local sock
+    sock=$(find_ipc_sock)
+    local bin_path
+    bin_path=$(find_code_bin_path)
+
+    local ppid
+    ppid=$(ps -o ppid= -p $$ | tr -d ' ')
+
+    # Attempt to guess shell, get the command name of the parent process
+    local parent_cmd
+    parent_cmd=$(ps -o comm= -p "$ppid")
+
+    # Some shells may show as full paths (e.g., /usr/bin/bash)
+    parent_cmd=$(basename "$parent_cmd")
+
+    case $shell in
+        fish)
+            echo "set -x VSCODE_IPC_HOOK_CLI $sock;"
+            echo "set -x PATH $bin_path \$PATH;"
+            ;;
+
+        csh|tcsh)
+            echo "setenv VSCODE_IPC_HOOK_CLI $sock;"
+            echo "setenv PATH $bin_path:\$PATH;"
+            ;;
+        *)
+            echo "export VSCODE_IPC_HOOK_CLI=$sock;"
+            echo "export PATH=$bin_path:\$PATH;"
+            ;;
+    esac
+}
+
+print_help() {
+    cat <<EOF
+Enable opening of files from the command line, in the current vscode ssh session.
+Will print out the necesarry env-vars for the above to work. You should eval the output.
+
+Usage: $0 [OPTIONS]
+
+Options:
+  --shell VALUE   What type of shell will be consuming the output. By default will attempt to guess.
+  -h, --help      Show this help message
+EOF
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --shell)
+            SHELL="$2"
+            GUESS_SHELL="false"
+            shift 2
+            ;;
+        -h|--help)
+            print_help
+            exit 0
+            ;;
+        --*) # Unknown option
+            echo "Error: Unknown option: $1"
+            print_help
+            exit 1
+            ;;
+        *) # Positional args
+            echo "Error: Unexpected argument: $1"
+            print_help
+            exit 1
+            ;;
+    esac
+done
+
+
+echo_vars
